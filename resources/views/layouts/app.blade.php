@@ -259,28 +259,127 @@
 
     <!-- Upload Modal -->
     <div id="uploadModal" class="fixed inset-0 z-50 flex items-center justify-center hidden">
-        <div class="absolute inset-0 bg-slate-900/50 backdrop-blur-sm" onclick="document.getElementById('uploadModal').classList.add('hidden')"></div>
+        <div class="absolute inset-0 bg-slate-900/50 backdrop-blur-sm" onclick="closeUploadModal()"></div>
         <div class="bg-white rounded-2xl shadow-xl w-full max-w-md p-6 relative z-10 mx-4">
             <div class="flex justify-between items-center mb-5">
                 <h3 class="text-xl font-bold text-slate-800">Upload Data Monitoring</h3>
-                <button onclick="document.getElementById('uploadModal').classList.add('hidden')" class="text-slate-400 hover:text-slate-600">
+                <button id="closeModalBtn" onclick="closeUploadModal()" class="text-slate-400 hover:text-slate-600">
                     <i data-lucide="x" class="w-5 h-5"></i>
                 </button>
             </div>
-            <form action="{{ route('upload') }}" method="POST" enctype="multipart/form-data">
+            
+            <form id="uploadForm" action="{{ route('upload') }}" method="POST" enctype="multipart/form-data">
                 @csrf
-                <div class="mb-5">
+                <div class="mb-5" id="fileInputContainer">
                     <label class="block mb-2 text-sm font-medium text-slate-700" for="file">Pilih file Data Monitoring (Excel/CSV)</label>
                     <input class="block w-full text-sm text-slate-500 border border-slate-300 rounded-lg cursor-pointer bg-slate-50 focus:outline-none focus:ring-2 focus:ring-brand-500" id="file" name="file" type="file" accept=".xlsx,.xls,.csv" required>
-                    <p class="mt-1 text-xs text-slate-500">Maksimal 50MB.</p>
+                    <p class="mt-1 text-xs text-slate-500">Maksimal 50MB. Proses upload & sinkronisasi bisa memakan waktu hingga 1-2 menit.</p>
                 </div>
-                <div class="flex justify-end gap-3">
-                    <button type="button" onclick="document.getElementById('uploadModal').classList.add('hidden')" class="px-4 py-2 text-sm font-medium text-slate-600 bg-slate-100 rounded-lg hover:bg-slate-200 focus:outline-none focus:ring-2 focus:ring-slate-300 transition-colors">Batal</button>
-                    <button type="submit" class="px-4 py-2 text-sm font-medium text-white bg-brand-600 rounded-lg hover:bg-brand-700 focus:outline-none focus:ring-2 focus:ring-brand-500 transition-colors">Upload</button>
+                
+                <!-- Progress UI (Hidden initially) -->
+                <div id="progressContainer" class="hidden mb-5 space-y-3">
+                    <div class="flex justify-between text-sm font-medium">
+                        <span id="progressStatus" class="text-slate-700">Mempersiapkan...</span>
+                        <span id="progressPercent" class="text-brand-600">0%</span>
+                    </div>
+                    <div class="w-full bg-slate-100 rounded-full h-2.5 overflow-hidden">
+                        <div id="progressBar" class="bg-brand-500 h-2.5 rounded-full transition-all duration-300" style="width: 0%"></div>
+                    </div>
+                    <p id="progressDetail" class="text-xs text-slate-500 truncate">-</p>
+                </div>
+
+                <div class="flex justify-end gap-3" id="actionButtons">
+                    <button type="button" onclick="closeUploadModal()" class="px-4 py-2 text-sm font-medium text-slate-600 bg-slate-100 rounded-lg hover:bg-slate-200 focus:outline-none focus:ring-2 focus:ring-slate-300 transition-colors">Batal</button>
+                    <button type="submit" id="submitBtn" class="px-4 py-2 text-sm font-medium text-white bg-brand-600 rounded-lg hover:bg-brand-700 focus:outline-none focus:ring-2 focus:ring-brand-500 transition-colors">Upload</button>
                 </div>
             </form>
         </div>
     </div>
+
+    <script>
+        function closeUploadModal() {
+            if (!document.getElementById('submitBtn').disabled) {
+                document.getElementById('uploadModal').classList.add('hidden');
+            }
+        }
+
+        document.getElementById('uploadForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const fileInput = document.getElementById('file');
+            if (!fileInput.files.length) return;
+
+            const formData = new FormData(this);
+            
+            // UI changes
+            document.getElementById('fileInputContainer').classList.add('hidden');
+            document.getElementById('progressContainer').classList.remove('hidden');
+            document.getElementById('submitBtn').disabled = true;
+            document.getElementById('submitBtn').innerHTML = '<i data-lucide="loader-2" class="w-4 h-4 animate-spin inline-block mr-2"></i>Uploading...';
+            document.getElementById('closeModalBtn').classList.add('hidden');
+            document.querySelector('#actionButtons button[type="button"]').classList.add('hidden');
+            lucide.createIcons();
+
+            let pollInterval = setInterval(async () => {
+                try {
+                    const res = await fetch("{{ route('upload.progress') }}");
+                    const data = await res.json();
+                    
+                    if (data.status !== 'idle') {
+                        let percent = 0;
+                        if (data.total > 0) {
+                            percent = Math.min(100, Math.round((data.current / data.total) * 100));
+                        }
+                        
+                        document.getElementById('progressBar').style.width = percent + '%';
+                        document.getElementById('progressPercent').innerText = percent + '%';
+                        
+                        if (data.status === 'reading' || data.status === 'importing') {
+                            document.getElementById('progressStatus').innerText = 'Mengimpor ke Database...';
+                            document.getElementById('progressDetail').innerText = 'Baris / SLS: ' + (data.sls || '-');
+                        } else if (data.status === 'mapping') {
+                            document.getElementById('progressStatus').innerText = 'Menyinkronkan Nama...';
+                            document.getElementById('progressDetail').innerText = 'SLS Target: ' + (data.sls || '-');
+                        } else if (data.status === 'error') {
+                            clearInterval(pollInterval);
+                            alert('Error: ' + data.message);
+                            location.reload();
+                        }
+                    }
+                } catch (err) {
+                    console.log('Polling error', err);
+                }
+            }, 1000);
+
+            // Send actual request
+            fetch("{{ route('upload') }}", {
+                method: 'POST',
+                body: formData,
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest'
+                }
+            })
+            .then(res => res.json())
+            .then(data => {
+                clearInterval(pollInterval);
+                if (data.success) {
+                    document.getElementById('progressStatus').innerText = 'Selesai!';
+                    document.getElementById('progressBar').style.width = '100%';
+                    document.getElementById('progressPercent').innerText = '100%';
+                    document.getElementById('progressDetail').innerText = 'Memuat ulang halaman...';
+                    setTimeout(() => location.reload(), 1000);
+                } else {
+                    alert(data.message || 'Terjadi kesalahan saat mengunggah');
+                    location.reload();
+                }
+            })
+            .catch(err => {
+                clearInterval(pollInterval);
+                alert('Request failed');
+                location.reload();
+            });
+        });
+    </script>
 
     @stack('scripts')
 </body>

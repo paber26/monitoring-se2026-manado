@@ -7,6 +7,7 @@ use App\Models\Target;
 
 Route::get('/', [AssignmentController::class, 'index'])->name('dashboard');
 Route::post('/upload', [AssignmentController::class, 'upload'])->name('upload');
+Route::get('/upload-progress', [AssignmentController::class, 'progress'])->name('upload.progress');
 
 Route::get('/api/data', function () {
     return response()->json(Assignment::all());

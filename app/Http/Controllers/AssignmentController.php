@@ -327,7 +327,16 @@ class AssignmentController extends Controller
             'file' => 'required|file|mimes:xlsx,xls,csv|max:51200',
         ]);
 
+        session()->save(); // Release session lock so AJAX polling works
+
         try {
+            \Illuminate\Support\Facades\Cache::put('upload_progress', [
+                'status' => 'reading',
+                'total' => 0,
+                'current' => 0,
+                'sls' => 'Membaca File...'
+            ], 300);
+
             Excel::import(new AssignmentImport, $request->file('file'));
             
             // Map the names using targets table mapping (like python script did)
@@ -335,6 +344,16 @@ class AssignmentController extends Controller
             // The python script dynamically mapped assigned_ppl_name based on level_6_full_code.
             // Let's do that post-import!
             $mappings = \App\Models\Target::where('type', 'sls')->get()->keyBy('key');
+            $totalMappings = $mappings->count();
+            
+            \Illuminate\Support\Facades\Cache::put('upload_progress', [
+                'status' => 'mapping',
+                'total' => $totalMappings,
+                'current' => 0,
+                'sls' => 'Sinkronisasi Nama...'
+            ], 300);
+
+            $mapCount = 0;
             foreach ($mappings as $sls => $target) {
                 $meta = $target->meta;
                 $pplName = $meta['ppl_name'] ?? '';
@@ -349,11 +368,44 @@ class AssignmentController extends Controller
                         'assigned_ppl_name' => $pplName,
                         'assigned_pml_name' => $pmlName
                     ]);
+                
+                $mapCount++;
+                if ($mapCount % 50 === 0) {
+                    \Illuminate\Support\Facades\Cache::put('upload_progress', [
+                        'status' => 'mapping',
+                        'total' => $totalMappings,
+                        'current' => $mapCount,
+                        'sls' => $sls
+                    ], 300);
+                }
             }
 
+            \Illuminate\Support\Facades\Cache::put('upload_progress', [
+                'status' => 'done'
+            ], 300);
+
+            if ($request->ajax()) {
+                return response()->json(['success' => true, 'message' => 'Data berhasil diunggah dan diperbarui!']);
+            }
             return redirect()->back()->with('success', 'Data berhasil diunggah dan diperbarui!');
         } catch (\Exception $e) {
+            \Illuminate\Support\Facades\Cache::put('upload_progress', [
+                'status' => 'error',
+                'message' => $e->getMessage()
+            ], 300);
+
+            if ($request->ajax()) {
+                return response()->json(['success' => false, 'message' => 'Terjadi kesalahan: ' . $e->getMessage()], 500);
+            }
             return redirect()->back()->with('error', 'Terjadi kesalahan: ' . $e->getMessage());
         }
+    }
+
+    public function progress()
+    {
+        $progress = \Illuminate\Support\Facades\Cache::get('upload_progress', [
+            'status' => 'idle'
+        ]);
+        return response()->json($progress);
     }
 }

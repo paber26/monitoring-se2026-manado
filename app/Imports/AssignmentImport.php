@@ -8,10 +8,32 @@ use Maatwebsite\Excel\Concerns\WithHeadingRow;
 use Maatwebsite\Excel\Concerns\WithBatchInserts;
 use Maatwebsite\Excel\Concerns\WithChunkReading;
 use Maatwebsite\Excel\Concerns\WithUpserts;
+use Maatwebsite\Excel\Concerns\WithEvents;
+use Maatwebsite\Excel\Events\BeforeImport;
+use Illuminate\Support\Facades\Cache;
 use PhpOffice\PhpSpreadsheet\Shared\Date;
 
-class AssignmentImport implements ToModel, WithHeadingRow, WithBatchInserts, WithChunkReading, WithUpserts
+class AssignmentImport implements ToModel, WithHeadingRow, WithBatchInserts, WithChunkReading, WithUpserts, WithEvents
 {
+    private static $currentRow = 0;
+
+    public function registerEvents(): array
+    {
+        return [
+            BeforeImport::class => function(BeforeImport $event) {
+                $totals = $event->getReader()->getTotalRows();
+                $total = array_sum($totals);
+                
+                Cache::put('upload_progress', [
+                    'total' => $total,
+                    'current' => 0,
+                    'sls' => '-',
+                    'status' => 'importing'
+                ], 300);
+            },
+        ];
+    }
+
     public function uniqueBy()
     {
         return 'fasih_id';
@@ -23,6 +45,14 @@ class AssignmentImport implements ToModel, WithHeadingRow, WithBatchInserts, Wit
         $fasihId = $row['id'] ?? null;
         if (!$fasihId) {
             return null; // Skip if no ID
+        }
+
+        self::$currentRow++;
+        if (self::$currentRow % 100 === 0) {
+            $progress = Cache::get('upload_progress', []);
+            $progress['current'] = self::$currentRow;
+            $progress['sls'] = $row['level_6_full_code'] ?? '-';
+            Cache::put('upload_progress', $progress, 300);
         }
 
         return new Assignment([
