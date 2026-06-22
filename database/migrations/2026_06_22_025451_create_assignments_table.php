@@ -13,11 +13,24 @@ return new class extends Migration
     {
         Schema::create('assignments', function (Blueprint $table) {
             $table->id();
-            $table->string('level_5_full_code')->unique();
-            $table->string('nama_sls')->nullable();
-            $table->integer('total_assignment_fasih')->default(0);
-            $table->string('ppl')->nullable();
-            $table->string('pml')->nullable();
+            $table->dateTime('date_created')->nullable();
+            $table->dateTime('date_modified')->nullable();
+            $table->string('assignment_status_alias')->nullable();
+            $table->string('level_3_name')->nullable();
+            $table->string('level_4_name')->nullable();
+            $table->string('level_5_name')->nullable();
+            $table->string('level_6_full_code')->nullable();
+            $table->integer('sum_clean')->default(0);
+            $table->integer('sum_error')->default(0);
+            $table->integer('sum_remark')->default(0);
+            $table->integer('kk_open_pbi')->default(0);
+            $table->string('assigned_ppl_name')->nullable();
+            $table->string('assigned_pml_name')->nullable();
+            $table->string('current_user_survey_role_name')->nullable();
+            $table->string('source_from')->nullable();
+            $table->string('real_name')->nullable();
+            $table->string('current_user_username')->nullable();
+            $table->string('email')->nullable();
             $table->timestamps();
         });
     }
