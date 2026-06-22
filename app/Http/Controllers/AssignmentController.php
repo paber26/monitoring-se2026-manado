@@ -258,13 +258,7 @@ class AssignmentController extends Controller
 
     public function performaRole($role)
     {
-        $assignments = Assignment::where('source_from', '!=', 'U-CAWI')
-            ->where('assignment_status_alias', '!=', 'SUBMITTED RESPONDENT')
-            ->where(function($query) {
-                $query->where('assignment_status_alias', '!=', 'DRAFT')
-                      ->orWhereNull('assignment_status_alias');
-            })
-            ->get();
+        $assignments = Assignment::where('source_from', '!=', 'U-CAWI')->get();
             
         $leaderboard = [];
         $isPML = (strtolower($role) === 'pengawas');

@@ -3,27 +3,46 @@
 @section('content')
 <div class="max-w-7xl mx-auto space-y-6">
     <div class="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden flex flex-col">
-        <div class="px-6 py-5 border-b border-slate-100 bg-white flex justify-between items-center">
-            <div class="flex items-center gap-2">
+        <div class="px-6 py-5 border-b border-slate-100 bg-white flex justify-between items-center flex-wrap gap-4">
+            <div class="flex items-center gap-3">
                 <div class="p-2 bg-slate-50 text-slate-600 rounded-lg">
-                    <i data-lucide="users" class="w-5 h-5"></i>
+                    <i data-lucide="bar-chart-2" class="w-5 h-5"></i>
                 </div>
-                <h3 class="text-lg font-bold text-slate-800">Performa: {{ $role }}</h3>
+                <h3 class="text-lg font-bold text-slate-800">Kinerja - {{ $role }}</h3>
             </div>
-            <span class="text-xs font-medium bg-slate-100 text-slate-500 px-2.5 py-1 rounded-full">{{ count($leaderboard) }} Orang</span>
+            
+            <div class="flex items-center gap-3">
+                <select id="kecamatanFilter" class="text-sm border-slate-200 rounded-lg text-slate-600 focus:ring-brand-500 focus:border-brand-500 py-2 pl-3 pr-8">
+                    <option value="">Semua Kecamatan</option>
+                    @php
+                        $allKec = [];
+                        foreach($leaderboard as $d) {
+                            foreach(array_keys($d['kecamatans']) as $k) {
+                                $allKec[$k] = true;
+                            }
+                        }
+                        $allKec = array_keys($allKec);
+                        sort($allKec);
+                    @endphp
+                    @foreach($allKec as $k)
+                        <option value="{{ $k }}">{{ $k }}</option>
+                    @endforeach
+                </select>
+            </div>
         </div>
+        
         <div class="overflow-x-auto">
-            <table class="w-full text-sm text-left">
-                <thead class="text-xs text-slate-500 bg-slate-50 uppercase font-semibold border-b border-slate-100">
+            <table class="w-full text-sm text-left whitespace-nowrap" id="dataTable">
+                <thead class="text-[11px] text-slate-500 bg-slate-50 uppercase font-bold border-b border-slate-100 tracking-wider">
                     <tr>
-                        <th class="px-6 py-4 w-16">No</th>
-                        <th class="px-6 py-4">Nama {{ $role }}</th>
-                        <th class="px-6 py-4">Kecamatan</th>
-                        <th class="px-6 py-4 text-right">Target</th>
-                        <th class="px-6 py-4 text-right">Progress</th>
-                        @if($isPML)
-                            <th class="px-6 py-4 text-center">Rasio Penolakan</th>
-                        @endif
+                        <th class="px-6 py-4 w-16">No.</th>
+                        <th class="px-6 py-4">Nama Petugas</th>
+                        <th class="px-4 py-4 text-center">Prelist</th>
+                        <th class="px-4 py-4 text-center">Dikerjakan</th>
+                        <th class="px-4 py-4 text-center">Approved By Pengawas</th>
+                        <th class="px-4 py-4 text-center">Draft</th>
+                        <th class="px-4 py-4 text-center">Rejected By Pengawas</th>
+                        <th class="px-4 py-4 text-center">Revoked By Pengawas</th>
                     </tr>
                 </thead>
                 <tbody class="divide-y divide-slate-100 text-slate-700">
@@ -32,31 +51,33 @@
                         @php
                             arsort($d['kecamatans']);
                             $domKec = array_key_first($d['kecamatans']);
-                            $targetVal = $targets[$d['username']] ?? 0;
                             
-                            $pmlExtra = '';
-                            if ($isPML) {
-                                $rejectedCount = $d['statuses']['REJECTED PML'] ?? 0;
-                                $approvedCount = $d['statuses']['APPROVED PML'] ?? 0;
-                                $totalAction = $rejectedCount + $approvedCount;
-                                $rejectRatio = $totalAction > 0 ? number_format(($rejectedCount / $totalAction) * 100, 1, ',', '.') : 0;
-                                $ratioClass = $rejectRatio > 10 ? 'text-red-600 font-semibold' : 'text-slate-600';
-                                $pmlExtra = "<td class=\"px-6 py-3 text-center\"><span class=\"{$ratioClass}\">{$rejectRatio}%</span></td>";
-                            }
+                            $prelist = $d['total'];
+                            $approved = $d['statuses']['APPROVED BY Pengawas'] ?? 0;
+                            $rejected = $d['statuses']['REJECTED BY Pengawas'] ?? 0;
+                            $revoked = $d['statuses']['REVOKED BY Pengawas'] ?? 0;
+                            $draft = $d['statuses']['DRAFT'] ?? 0;
+                            $submittedPcl = $d['statuses']['SUBMITTED BY Pencacah'] ?? 0;
+                            
+                            $dikerjakan = $approved + $rejected + $revoked + $submittedPcl;
                         @endphp
-                        <tr class="hover:bg-slate-50 transition-colors">
-                            <td class="px-6 py-3 text-slate-500">{{ $index++ }}</td>
-                            <td class="px-6 py-3 font-semibold text-slate-800">{{ $d['name'] }}</td>
-                            <td class="px-6 py-3 text-slate-600">{{ $domKec }}</td>
-                            <td class="px-6 py-3 text-right font-semibold text-slate-700">{{ $targetVal > 0 ? number_format($targetVal, 0, ',', '.') : '-' }}</td>
-                            <td class="px-6 py-3 text-right">
-                                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-emerald-100 text-emerald-800">
-                                    {{ number_format($d['total'], 0, ',', '.') }}
-                                </span>
+                        <tr class="hover:bg-slate-50 transition-colors data-row" data-kecamatan="{{ $domKec }}">
+                            <td class="px-6 py-4 text-slate-500">{{ $index++ }}</td>
+                            <td class="px-6 py-4 font-semibold text-slate-800">{{ $d['name'] }}</td>
+                            <td class="px-4 py-4 text-center font-medium text-slate-700">{{ $prelist > 0 ? $prelist : '-' }}</td>
+                            <td class="px-4 py-4 text-center">
+                                @if($dikerjakan > 0)
+                                    <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-semibold bg-emerald-100 text-emerald-700">
+                                        {{ $dikerjakan }}
+                                    </span>
+                                @else
+                                    <span class="text-slate-400">-</span>
+                                @endif
                             </td>
-                            @if($isPML)
-                                {!! $pmlExtra !!}
-                            @endif
+                            <td class="px-4 py-4 text-center font-medium {{ $approved > 0 ? 'text-slate-700' : 'text-slate-400' }}">{{ $approved > 0 ? $approved : '-' }}</td>
+                            <td class="px-4 py-4 text-center font-medium {{ $draft > 0 ? 'text-slate-700' : 'text-slate-400' }}">{{ $draft > 0 ? $draft : '-' }}</td>
+                            <td class="px-4 py-4 text-center font-medium {{ $rejected > 0 ? 'text-slate-700' : 'text-slate-400' }}">{{ $rejected > 0 ? $rejected : '-' }}</td>
+                            <td class="px-4 py-4 text-center font-medium {{ $revoked > 0 ? 'text-slate-700' : 'text-slate-400' }}">{{ $revoked > 0 ? $revoked : '-' }}</td>
                         </tr>
                     @endforeach
                 </tbody>
@@ -64,4 +85,23 @@
         </div>
     </div>
 </div>
+
+@push('scripts')
+<script>
+    document.getElementById('kecamatanFilter').addEventListener('change', function() {
+        const filter = this.value;
+        const rows = document.querySelectorAll('.data-row');
+        let visibleIndex = 1;
+        
+        rows.forEach(row => {
+            if (filter === '' || row.getAttribute('data-kecamatan') === filter) {
+                row.style.display = '';
+                row.querySelector('td:first-child').innerText = visibleIndex++;
+            } else {
+                row.style.display = 'none';
+            }
+        });
+    });
+</script>
+@endpush
 @endsection
