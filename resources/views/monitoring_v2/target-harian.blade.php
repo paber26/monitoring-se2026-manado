@@ -91,7 +91,7 @@
                             </td>
                             <td class="px-6 py-3 text-right font-semibold text-slate-700">{{ number_format($targetVal, 0, ',', '.') }}</td>
                             <td class="px-6 py-3 text-right font-semibold text-slate-500">{{ $targetRangeText }}</td>
-                            <td class="px-6 py-3 text-right font-semibold text-brand-700 bg-brand-50/30">{{ number_format($targetSdHariIni, 1, ',', '.') }}</td>
+                            <td class="px-6 py-3 text-right font-semibold text-brand-700 bg-brand-50/30">{{ number_format($targetSdHariIni, 0, ',', '.') }}</td>
                             <td class="px-6 py-3 text-right bg-emerald-50/30">
                                 <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium {{ $isFinished ? 'bg-emerald-100 text-emerald-800' : 'bg-slate-100 text-slate-800' }}">
                                     {{ number_format($d['total'], 0, ',', '.') }}
