@@ -76,6 +76,8 @@ class SeedTargetsCommand extends Command
         $headers = array_map(function($h) { return trim(strtolower($h)); }, $headers);
 
         $kecIdx = array_search('nmkec', $headers);
+        $desaIdx = array_search('nmdesa', $headers);
+        $namaSlsIdx = array_search('nama sls', $headers);
         $slsIdx = array_search('idsubsls_25_2', $headers);
         $totalIdx = array_search('total assignment fasih', $headers);
         $flagIdx = array_search('flag sls open pbi', $headers);
@@ -107,7 +109,10 @@ class SeedTargetsCommand extends Command
                         'flag' => 0,
                         'kk' => 0,
                         'ppl_name' => '',
-                        'pml_name' => ''
+                        'pml_name' => '',
+                        'nmkec' => trim($r[$kecIdx] ?? ''),
+                        'nmdesa' => trim($r[$desaIdx] ?? ''),
+                        'nama_sls' => trim($r[$namaSlsIdx] ?? '')
                     ];
                 }
                 $slsTargets[$sls]['total'] += $total;
@@ -160,7 +165,10 @@ class SeedTargetsCommand extends Command
                     'flag_sls_open_pbi' => $data['flag'],
                     'kk_open_pbi' => $data['kk'],
                     'ppl_name' => $data['ppl_name'],
-                    'pml_name' => $data['pml_name']
+                    'pml_name' => $data['pml_name'],
+                    'nmkec' => $data['nmkec'],
+                    'nmdesa' => $data['nmdesa'],
+                    'nama_sls' => $data['nama_sls']
                 ]
             ]);
         }

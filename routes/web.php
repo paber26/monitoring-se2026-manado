@@ -2,6 +2,7 @@
 
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\AssignmentController;
+use App\Http\Controllers\MonitoringV2Controller;
 use App\Models\Assignment;
 use App\Models\Target;
 
@@ -46,15 +47,15 @@ Route::get('/api/metadata', function () {
     ]);
 });
 
-Route::get('/dashboard-utama', [AssignmentController::class, 'index'])->name('dashboard');
-Route::get('/progres-kecamatan', [AssignmentController::class, 'progresKecamatan'])->name('progres.kecamatan');
-Route::get('/progres-sls', [AssignmentController::class, 'progresSls'])->name('progres.sls');
-Route::get('/', [AssignmentController::class, 'dashboardDesa'])->name('dashboard.desa');
-Route::get('/leaderboard', [AssignmentController::class, 'leaderboard'])->name('leaderboard');
-Route::get('/target-harian', [AssignmentController::class, 'targetHarian'])->name('target.harian');
-Route::get('/role/{role}', [AssignmentController::class, 'performaRole'])->name('role.performa');
-Route::get('/queries', [AssignmentController::class, 'queries'])->name('queries');
+Route::get('/dashboard-utama', [MonitoringV2Controller::class, 'index'])->name('dashboard');
+Route::get('/progres-kecamatan', [MonitoringV2Controller::class, 'progresKecamatan'])->name('progres.kecamatan');
+Route::get('/progres-sls', [MonitoringV2Controller::class, 'progresSls'])->name('progres.sls');
+Route::get('/', [MonitoringV2Controller::class, 'dashboardDesa'])->name('dashboard.desa');
+Route::get('/leaderboard', [MonitoringV2Controller::class, 'leaderboard'])->name('leaderboard');
+Route::get('/target-harian', [MonitoringV2Controller::class, 'targetHarian'])->name('target.harian');
+Route::get('/role/{role}', [MonitoringV2Controller::class, 'performaRole'])->name('role.performa');
+Route::get('/queries', [MonitoringV2Controller::class, 'queries'])->name('queries');
 
 // Data Petugas
-Route::get('/data-petugas', [AssignmentController::class, 'dataPetugas'])->name('data.petugas');
-Route::post('/data-petugas/upload', [AssignmentController::class, 'uploadPetugas'])->name('data.petugas.upload');
+Route::get('/data-petugas', [MonitoringV2Controller::class, 'dataPetugas'])->name('data.petugas');
+Route::post('/data-petugas/upload', [MonitoringV2Controller::class, 'uploadPetugas'])->name('data.petugas.upload');

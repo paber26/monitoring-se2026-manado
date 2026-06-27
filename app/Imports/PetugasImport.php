@@ -12,24 +12,15 @@ class PetugasImport implements ToCollection, WithHeadingRow
     public function collection(Collection $rows)
     {
         foreach ($rows as $row) {
-            $key = [];
-            
-            if (!empty($row['email'])) {
-                $key['email'] = $row['email'];
-            } elseif (!empty($row['kode_identitas'])) {
-                $key['kode_identitas'] = $row['kode_identitas'];
-            } elseif (!empty($row['nama'])) {
-                $key['nama'] = $row['nama'];
-            } else {
+            if (empty($row['kode_identitas'])) {
                 continue; 
             }
 
             Petugas::updateOrCreate(
-                $key,
+                ['kode_identitas' => $row['kode_identitas']],
                 [
                     'nama' => $row['nama'] ?? null,
                     'email' => $row['email'] ?? null,
-                    'kode_identitas' => $row['kode_identitas'] ?? null,
                     'open' => (int) ($row['open'] ?? 0),
                     'draft' => (int) ($row['draft'] ?? 0),
                     'submitted_by_pencacah' => (int) ($row['submitted_by_pencacah'] ?? 0),
