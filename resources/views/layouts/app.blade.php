@@ -106,21 +106,9 @@
 
         <!-- Navigation -->
         <nav class="flex-1 overflow-y-auto py-6 px-3 space-y-1" id="sideMenu">
-            <a href="{{ route('dashboard.desa') }}" class="menu-item {{ request()->routeIs('dashboard.desa') ? 'active' : '' }} flex items-center gap-3 px-3 py-2.5 rounded-lg hover:bg-slate-800 hover:text-white transition-colors group">
-                <i data-lucide="layout-dashboard" class="w-5 h-5 {{ request()->routeIs('dashboard.desa') ? '' : 'text-brand-500' }} transition-colors nav-icon"></i>
-                <span class="text-sm font-medium nav-text">Dashboard Desa</span>
-            </a>
             <a href="{{ route('dashboard') }}" class="menu-item {{ request()->routeIs('dashboard') ? 'active' : '' }} flex items-center gap-3 px-3 py-2.5 rounded-lg hover:bg-slate-800 hover:text-white transition-colors group">
                 <i data-lucide="pie-chart" class="w-5 h-5 {{ request()->routeIs('dashboard') ? '' : 'text-slate-400' }} transition-colors nav-icon"></i>
                 <span class="text-sm font-medium nav-text">Dashboard Utama</span>
-            </a>
-            <a href="{{ route('progres.kecamatan') }}" class="menu-item {{ request()->routeIs('progres.kecamatan') ? 'active' : '' }} flex items-center gap-3 px-3 py-2.5 rounded-lg hover:bg-slate-800 hover:text-white transition-colors group">
-                <i data-lucide="map" class="w-5 h-5 {{ request()->routeIs('progres.kecamatan') ? '' : 'text-slate-400' }} transition-colors nav-icon"></i>
-                <span class="text-sm font-medium nav-text">Progres Kecamatan</span>
-            </a>
-            <a href="{{ route('progres.sls') }}" class="menu-item {{ request()->routeIs('progres.sls') ? 'active' : '' }} flex items-center gap-3 px-3 py-2.5 rounded-lg hover:bg-slate-800 hover:text-white transition-colors group">
-                <i data-lucide="map-pin" class="w-5 h-5 {{ request()->routeIs('progres.sls') ? '' : 'text-slate-400' }} transition-colors nav-icon"></i>
-                <span class="text-sm font-medium nav-text">Progres SLS</span>
             </a>
             
             <div class="pt-4 pb-2">
@@ -134,31 +122,25 @@
             
             <a href="{{ route('target.harian') }}" class="menu-item {{ request()->routeIs('target.harian') ? 'active' : '' }} flex items-center gap-3 px-3 py-2.5 rounded-lg hover:bg-slate-800 hover:text-white transition-colors relative group">
                 <i data-lucide="target" class="w-5 h-5 {{ request()->routeIs('target.harian') ? '' : 'text-slate-400' }} nav-icon"></i>
-                <span class="text-sm font-medium nav-text">Target Harian</span>
+                <span class="text-sm font-medium nav-text">Kinerja Petugas</span>
             </a>
 
-            {{-- <a href="{{ route('queries') }}" class="menu-item {{ request()->routeIs('queries') ? 'active' : '' }} flex items-center gap-3 px-3 py-2.5 rounded-lg hover:bg-slate-800 hover:text-white transition-colors relative group">
-                <i data-lucide="database" class="w-5 h-5 {{ request()->routeIs('queries') ? '' : 'text-slate-400' }} nav-icon"></i>
-                <span class="text-sm font-medium nav-text">Query Update</span>
-            </a> --}}
-
-            {{-- <a href="{{ route('data.petugas') }}" class="menu-item {{ request()->routeIs('data.petugas') ? 'active' : '' }} flex items-center gap-3 px-3 py-2.5 rounded-lg hover:bg-slate-800 hover:text-white transition-colors relative group">
-                <i data-lucide="users" class="w-5 h-5 {{ request()->routeIs('data.petugas') ? '' : 'text-slate-400' }} nav-icon"></i>
-                <span class="text-sm font-medium nav-text">Data Petugas</span>
-            </a> --}}
+            <div class="pt-4 pb-2">
+                <p class="px-3 text-xs font-semibold text-slate-500 uppercase tracking-wider">Laporan Wilayah</p>
+            </div>
             
-            <!-- Dynamic Role Menus -->
-            @if($roles->count() > 0)
-                @foreach($roles as $roleName)
-                    @php 
-                        $isActive = request()->routeIs('role.performa') && request()->route('role') === $roleName;
-                    @endphp
-                    <a href="{{ route('role.performa', $roleName) }}" class="menu-item {{ $isActive ? 'active' : '' }} flex items-center gap-3 px-3 py-2.5 rounded-lg hover:bg-slate-800 hover:text-white transition-colors group">
-                        <i data-lucide="bar-chart-2" class="w-5 h-5 {{ $isActive ? '' : 'text-slate-400' }} transition-colors nav-icon"></i>
-                        <span class="text-sm font-medium nav-text">Kinerja - {{ $roleName }}</span>
-                    </a>
-                @endforeach
-            @endif
+            <a href="{{ route('dashboard.desa') }}" class="menu-item {{ request()->routeIs('dashboard.desa') ? 'active' : '' }} flex items-center gap-3 px-3 py-2.5 rounded-lg hover:bg-slate-800 hover:text-white transition-colors group">
+                <i data-lucide="layout-dashboard" class="w-5 h-5 {{ request()->routeIs('dashboard.desa') ? '' : 'text-brand-500' }} transition-colors nav-icon"></i>
+                <span class="text-sm font-medium nav-text">Dashboard Desa</span>
+            </a>
+            <a href="{{ route('progres.kecamatan') }}" class="menu-item {{ request()->routeIs('progres.kecamatan') ? 'active' : '' }} flex items-center gap-3 px-3 py-2.5 rounded-lg hover:bg-slate-800 hover:text-white transition-colors group">
+                <i data-lucide="map" class="w-5 h-5 {{ request()->routeIs('progres.kecamatan') ? '' : 'text-slate-400' }} transition-colors nav-icon"></i>
+                <span class="text-sm font-medium nav-text">Progres Kecamatan</span>
+            </a>
+            <a href="{{ route('progres.sls') }}" class="menu-item {{ request()->routeIs('progres.sls') ? 'active' : '' }} flex items-center gap-3 px-3 py-2.5 rounded-lg hover:bg-slate-800 hover:text-white transition-colors group">
+                <i data-lucide="map-pin" class="w-5 h-5 {{ request()->routeIs('progres.sls') ? '' : 'text-slate-400' }} transition-colors nav-icon"></i>
+                <span class="text-sm font-medium nav-text">Progres SLS</span>
+            </a>
         </nav>
         <div class="px-4 pb-4">
             <div class="flex items-center justify-between text-xs text-slate-400 bg-slate-800 rounded-md px-3 py-2">

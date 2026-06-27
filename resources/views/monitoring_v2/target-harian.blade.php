@@ -8,7 +8,7 @@
                 <div class="p-2 bg-indigo-50 text-indigo-600 rounded-lg">
                     <i data-lucide="target" class="w-5 h-5"></i>
                 </div>
-                <h3 class="text-lg font-bold text-slate-800">Target Harian Petugas</h3>
+                <h3 class="text-lg font-bold text-slate-800">Kinerja Petugas</h3>
             </div>
             
             <form method="GET" action="{{ route('target.harian') }}" class="flex flex-wrap gap-4 items-end bg-slate-50 p-4 rounded-xl border border-slate-100" id="filterForm">
