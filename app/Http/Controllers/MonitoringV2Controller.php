@@ -325,33 +325,32 @@ class MonitoringV2Controller extends Controller
         
         foreach ($petugasList as $p) {
             $slsCode = $p->kode_identitas;
-            $kecamatan = 'Tidak Diketahui';
+            if (!isset($slsTargets[$slsCode])) continue;
+            
+            $kecamatan = $slsTargets[$slsCode]->meta['nmkec'] ?? 'Tidak Diketahui';
             
             $inferredRole = 'Pencacah'; 
-            if (isset($slsTargets[$slsCode])) {
-                $kecamatan = $slsTargets[$slsCode]->meta['nmkec'] ?? 'Tidak Diketahui';
-                if (strtolower($slsTargets[$slsCode]->meta['pml_name'] ?? '') == strtolower($p->nama)) {
-                    $inferredRole = 'Pengawas';
-                }
+            if (strtolower($slsTargets[$slsCode]->meta['pml_name'] ?? '') == strtolower($p->nama)) {
+                $inferredRole = 'Pengawas';
             }
-            
             if (strtolower($inferredRole) !== strtolower($role)) continue;
             
             $username = $p->nama;
             if (trim($username) === '-' || empty(trim($username))) {
-                if (isset($slsTargets[$slsCode])) {
-                    $username = $slsTargets[$slsCode]->meta['ppl_name'] ?? '-';
-                }
+                $username = ($inferredRole == 'Pengawas') ? ($slsTargets[$slsCode]->meta['pml_name'] ?? '-') : ($slsTargets[$slsCode]->meta['ppl_name'] ?? '-');
             }
             
-            if (!empty($username) && trim($username) !== '' && strtolower(trim($username)) !== 'nan') {
+            if (!empty($username) && trim($username) !== '-' && trim($username) !== '' && strtolower(trim($username)) !== 'nan') {
                 if (!isset($leaderboard[$username])) {
                     $leaderboard[$username] = [
                         'username' => $username,
                         'name' => $username,
                         'total' => 0,
+                        'target' => 0,
+                        'sls_count' => 0,
                         'kecamatans' => [],
-                        'statuses' => []
+                        'statuses' => [],
+                        'sls_details' => []
                     ];
                 }
                 
@@ -359,7 +358,11 @@ class MonitoringV2Controller extends Controller
                              $p->rejected_by_pengawas + $p->revoked_by_pengawas + 
                              $p->completed_by_admin_kabupaten;
                              
+                $targetVal = $slsTargets[$slsCode]->target_value ?? 0;
+                
                 $leaderboard[$username]['total'] += $realisasi;
+                $leaderboard[$username]['target'] += $targetVal;
+                $leaderboard[$username]['sls_count']++;
                 
                 if (!isset($leaderboard[$username]['kecamatans'][$kecamatan])) {
                     $leaderboard[$username]['kecamatans'][$kecamatan] = 0;
@@ -386,6 +389,23 @@ class MonitoringV2Controller extends Controller
                         $leaderboard[$username]['statuses'][$st] += $val;
                     }
                 }
+                
+                // Add SLS detail
+                $leaderboard[$username]['sls_details'][] = [
+                    'kode_sls' => $slsCode,
+                    'nama_sls' => $slsTargets[$slsCode]->meta['nama_sls'] ?? '',
+                    'desa' => $slsTargets[$slsCode]->meta['nmdesa'] ?? '',
+                    'open' => $p->open,
+                    'draft' => $p->draft,
+                    'submit_pencacah' => $p->submitted_by_pencacah,
+                    'submit_respondent' => $p->submitted_respondent,
+                    'approved' => $p->approved_by_pengawas,
+                    'rejected' => $p->rejected_by_pengawas,
+                    'revoked' => $p->revoked_by_pengawas,
+                    'completed' => $p->completed_by_admin_kabupaten,
+                    'realisasi' => $realisasi,
+                    'target' => $targetVal
+                ];
             }
         }
         
