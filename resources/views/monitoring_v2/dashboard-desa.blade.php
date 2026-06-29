@@ -198,7 +198,7 @@
 
     <div class="dashboard-controls">
         <div style="display:flex; align-items:center; gap: 1rem;">
-            <span style="font-size:0.875rem; font-weight:600;">KAB. MINAHASA SELATAN</span>
+            <span style="font-size:0.875rem; font-weight:600;">BPS KOTA MANADO</span>
             <select id="kecamatanSelect">
                 <option value="">-- Semua Kecamatan --</option>
                 <option value="7105010">010 - MODOINDING</option>

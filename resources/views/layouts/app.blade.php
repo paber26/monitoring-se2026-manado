@@ -160,7 +160,7 @@
                 </div>
                 <div>
                     <p class="text-sm font-medium text-white">Admin Kab</p>
-                    <p class="text-xs text-slate-400">Minahasa Selatan</p>
+                    <p class="text-xs text-slate-400">BPS Kota Manado</p>
                 </div>
             </div>
         </div>
@@ -189,7 +189,7 @@
         <header class="bg-white px-4 md:px-8 py-4 md:py-5 border-b border-slate-200 flex-shrink-0 z-10 shadow-sm hidden md:block">
             <div class="flex justify-between items-start md:items-center flex-col md:flex-row gap-4">
                 <div>
-                    <h2 class="text-xl md:text-2xl font-bold text-slate-800">Monitoring Pencacahan SE2026 Minahasa Selatan</h2>
+                    <h2 class="text-xl md:text-2xl font-bold text-slate-800">Monitoring Pencacahan SE2026 BPS Kota Manado</h2>
                 </div>
                 {{-- <div class="flex gap-2 self-start md:self-auto">
                     <button onclick="document.getElementById('uploadModal').classList.remove('hidden')" class="bg-brand-600 hover:bg-brand-700 text-white px-4 py-2 rounded-lg text-sm font-semibold flex items-center gap-2 transition-colors shadow-sm">
