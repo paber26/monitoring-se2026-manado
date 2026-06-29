@@ -129,7 +129,7 @@
                 <p class="px-3 text-xs font-semibold text-slate-500 uppercase tracking-wider">Laporan Wilayah</p>
             </div>
             
-            <a href="{{ route('dashboard.desa') }}" class="menu-item {{ request()->routeIs('dashboard.desa') ? 'active' : '' }} flex items-center gap-3 px-3 py-2.5 rounded-lg hover:bg-slate-800 hover:text-white transition-colors group">
+            <a href="{{ route('dashboard.desa') }}" class="hidden menu-item {{ request()->routeIs('dashboard.desa') ? 'active' : '' }} flex items-center gap-3 px-3 py-2.5 rounded-lg hover:bg-slate-800 hover:text-white transition-colors group">
                 <i data-lucide="layout-dashboard" class="w-5 h-5 {{ request()->routeIs('dashboard.desa') ? '' : 'text-brand-500' }} transition-colors nav-icon"></i>
                 <span class="text-sm font-medium nav-text">Dashboard Desa</span>
             </a>
