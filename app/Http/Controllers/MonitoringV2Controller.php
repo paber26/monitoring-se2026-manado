@@ -209,7 +209,7 @@ class MonitoringV2Controller extends Controller
             $username = $p->nama ?? $p->email ?? $p->kode_identitas;
             if (empty($username)) continue;
             
-            $roleName = 'Pencacah';
+            $roleName = $p->role ?? 'Pencacah';
             $normalizedName = strtolower(trim($username));
             $userKey = $normalizedName . '|' . $roleName;
             
@@ -314,7 +314,7 @@ class MonitoringV2Controller extends Controller
             $username = $p->nama ?? $p->email ?? $p->kode_identitas;
             if (empty($username)) continue;
             
-            $roleName = 'Pencacah';
+            $roleName = $p->role ?? 'Pencacah';
             $normalizedName = strtolower(trim($username));
             $userKey = $normalizedName . '|' . $roleName;
             if (!isset($leaderboard[$userKey])) {
@@ -632,32 +632,37 @@ class MonitoringV2Controller extends Controller
 
     public function dataPetugas()
     {
-        $petugasList = \App\Models\Petugas::all();
+        $petugasList = \App\Models\Petugas::where('role', 'Pencacah')->get();
+        $pengawasList = \App\Models\Petugas::where('role', 'Pengawas')->get();
         
+        $allPetugas = \App\Models\Petugas::all();
         $summaries = [
-            'total_petugas' => $petugasList->count(),
-            'open' => $petugasList->sum('open'),
-            'draft' => $petugasList->sum('draft'),
-            'submitted_by_pencacah' => $petugasList->sum('submitted_by_pencacah'),
-            'approved_by_pengawas' => $petugasList->sum('approved_by_pengawas'),
-            'rejected_by_pengawas' => $petugasList->sum('rejected_by_pengawas'),
-            'submitted_respondent' => $petugasList->sum('submitted_respondent'),
-            'revoked_by_pengawas' => $petugasList->sum('revoked_by_pengawas'),
-            'completed_by_admin_kabupaten' => $petugasList->sum('completed_by_admin_kabupaten'),
+            'total_petugas' => $allPetugas->count(),
+            'open' => $allPetugas->sum('open'),
+            'draft' => $allPetugas->sum('draft'),
+            'submitted_by_pencacah' => $allPetugas->sum('submitted_by_pencacah'),
+            'approved_by_pengawas' => $allPetugas->sum('approved_by_pengawas'),
+            'rejected_by_pengawas' => $allPetugas->sum('rejected_by_pengawas'),
+            'submitted_respondent' => $allPetugas->sum('submitted_respondent'),
+            'revoked_by_pengawas' => $allPetugas->sum('revoked_by_pengawas'),
+            'completed_by_admin_kabupaten' => $allPetugas->sum('completed_by_admin_kabupaten'),
         ];
         
-        return view('monitoring_v2.data-petugas', compact('petugasList', 'summaries'));
+        return view('monitoring_v2.data-petugas', compact('petugasList', 'pengawasList', 'summaries'));
     }
 
     public function uploadPetugas(Request $request)
     {
         $request->validate([
             'file' => 'required|file|mimes:xlsx,xls,csv|max:51200',
+            'role' => 'required|in:Pencacah,Pengawas',
         ]);
 
+        $role = $request->input('role', 'Pencacah');
+
         try {
-            Excel::import(new \App\Imports\PetugasImport, $request->file('file'));
-            return redirect()->back()->with('success', 'Data petugas berhasil diunggah dan diupdate.');
+            Excel::import(new \App\Imports\PetugasImport($role), $request->file('file'));
+            return redirect()->back()->with('success', "Data {$role} berhasil diunggah dan diupdate.");
         } catch (\Exception $e) {
             return redirect()->back()->with('error', 'Terjadi kesalahan: ' . $e->getMessage());
         }

@@ -9,6 +9,13 @@ use Maatwebsite\Excel\Concerns\WithHeadingRow;
 
 class PetugasImport implements ToCollection, WithHeadingRow
 {
+    protected $role;
+
+    public function __construct(string $role = 'Pencacah')
+    {
+        $this->role = $role;
+    }
+
     public function collection(Collection $rows)
     {
         foreach ($rows as $row) {
@@ -30,6 +37,7 @@ class PetugasImport implements ToCollection, WithHeadingRow
                     'kode_identitas' => $row['kode_identitas'] ?? null,
                     'nama' => $row['nama'] ?? null,
                     'email' => $row['email'] ?? null,
+                    'role' => $this->role,
                     'open' => (int) ($row['open'] ?? 0),
                     'draft' => (int) ($row['draft'] ?? 0),
                     'submitted_by_pencacah' => (int) ($row['submitted_by_pencacah'] ?? 0),
