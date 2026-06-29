@@ -326,6 +326,7 @@ class MonitoringV2Controller extends Controller
             if (isset($wilkerstats[$slsCode])) {
                 $namaSls = $wilkerstats[$slsCode]->nmsls ?? '';
                 $desa = $wilkerstats[$slsCode]->nmdesa ?? '';
+                $targetVal = $wilkerstats[$slsCode]->target_fasih ?? 0;
             } elseif (isset($slsTargets[$slsCode])) {
                 $namaSls = $slsTargets[$slsCode]->meta['nama_sls'] ?? '';
                 $desa = $slsTargets[$slsCode]->meta['nmdesa'] ?? '';
@@ -419,7 +420,10 @@ class MonitoringV2Controller extends Controller
                              $p->rejected_by_pengawas + $p->revoked_by_pengawas + 
                              $p->completed_by_admin_kabupaten;
                              
-                $targetVal = isset($slsTargets[$slsCode]) ? ($slsTargets[$slsCode]->target_value ?? 0) : 0;
+                $targetVal = isset($wilkerstats[$slsCode]) ? ($wilkerstats[$slsCode]->target_fasih ?? 0) : 0;
+                if ($targetVal == 0 && isset($slsTargets[$slsCode])) {
+                    $targetVal = $slsTargets[$slsCode]->target_value ?? 0;
+                }
                 
                 $leaderboard[$normalizedName]['total'] += $realisasi;
                 $leaderboard[$normalizedName]['target'] += $targetVal;
