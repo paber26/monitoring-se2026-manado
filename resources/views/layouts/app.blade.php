@@ -93,7 +93,7 @@
         <!-- Logo Area -->
         <div class="h-16 md:h-20 flex items-center px-6 border-b border-slate-700/50 justify-between">
             <div class="flex items-center gap-3">
-                <img src="{{ asset('logo-small.png') }}" alt="Logo BPS" class="w-8 h-8 md:w-9 md:h-9 object-contain drop-shadow-sm">
+                <img src="{{ asset('logo.png') }}" alt="Logo BPS" class="w-8 h-8 md:w-9 md:h-9 object-contain drop-shadow-sm">
                 <div>
                     <h1 class="text-white font-bold text-base md:text-lg leading-tight">BPS</h1>
                     <p class="text-[10px] md:text-xs text-slate-400 font-medium tracking-wider uppercase">Monitoring</p>
@@ -172,7 +172,7 @@
         <!-- Mobile Navbar -->
         <div class="md:hidden bg-white border-b border-slate-200 px-4 py-3 flex items-center justify-between flex-shrink-0 shadow-sm z-10">
             <div class="flex items-center gap-3">
-                <img src="{{ asset('logo-small.png') }}" alt="Logo BPS" class="w-7 h-7 object-contain">
+                <img src="{{ asset('logo.png') }}" alt="Logo BPS" class="w-7 h-7 object-contain">
                 <h1 class="font-bold text-slate-800 text-sm">BPS Monitoring</h1>
             </div>
             <div class="flex items-center gap-2">
