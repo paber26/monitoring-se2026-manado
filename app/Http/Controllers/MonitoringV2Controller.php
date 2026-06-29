@@ -13,6 +13,7 @@ class MonitoringV2Controller extends Controller
     {
         $petugas = \App\Models\Petugas::all();
         $slsTargets = \App\Models\Target::where('type', 'sls')->get()->keyBy('key');
+        $wilkerstats = \App\Models\Wilkerstat::all()->keyBy('idsubsls');
 
         $totalDocs = 0;
         $statusCounts = [
@@ -26,7 +27,10 @@ class MonitoringV2Controller extends Controller
 
         foreach ($petugas as $p) {
             $slsCode = $p->kode_identitas;
-            $kecamatan = 'Tidak Diketahui';
+             $kecamatan = 'Tidak Diketahui';
+            if (isset($wilkerstats[$slsCode])) {
+                $kecamatan = $wilkerstats[$slsCode]->nmkec ?? 'Tidak Diketahui';
+            } else
             if (isset($slsTargets[$slsCode])) {
                 $kecamatan = $slsTargets[$slsCode]->meta['nmkec'] ?? 'Tidak Diketahui';
             }
@@ -71,6 +75,7 @@ class MonitoringV2Controller extends Controller
     {
         $petugas = \App\Models\Petugas::all();
         $slsTargets = \App\Models\Target::where('type', 'sls')->get()->keyBy('key');
+        $wilkerstats = \App\Models\Wilkerstat::all()->keyBy('idsubsls');
             
         $statusKeys = [
             'OPEN', 'DRAFT', 'SUBMITTED BY PENCACAH', 'APPROVED BY PENGAWAS', 
@@ -81,7 +86,10 @@ class MonitoringV2Controller extends Controller
         $pivotData = [];
         foreach ($petugas as $p) {
             $slsCode = $p->kode_identitas;
-            $kecamatan = 'Tidak Diketahui';
+             $kecamatan = 'Tidak Diketahui';
+            if (isset($wilkerstats[$slsCode])) {
+                $kecamatan = $wilkerstats[$slsCode]->nmkec ?? 'Tidak Diketahui';
+            } else
             if (isset($slsTargets[$slsCode])) {
                 $kecamatan = $slsTargets[$slsCode]->meta['nmkec'] ?? 'Tidak Diketahui';
             }
@@ -170,13 +178,17 @@ class MonitoringV2Controller extends Controller
     {
         $petugasList = \App\Models\Petugas::all();
         $slsTargets = \App\Models\Target::where('type', 'sls')->get()->keyBy('key');
+        $wilkerstats = \App\Models\Wilkerstat::all()->keyBy('idsubsls');
         
         $leaderboard = [];
         
         foreach ($petugasList as $p) {
             $slsCode = $p->kode_identitas;
             
-            $kecamatan = 'Tidak Diketahui';
+             $kecamatan = 'Tidak Diketahui';
+            if (isset($wilkerstats[$slsCode])) {
+                $kecamatan = $wilkerstats[$slsCode]->nmkec ?? 'Tidak Diketahui';
+            } else
             if (isset($slsTargets[$slsCode])) {
                 $kecamatan = $slsTargets[$slsCode]->meta['nmkec'] ?? 'Tidak Diketahui';
             }
@@ -255,30 +267,32 @@ class MonitoringV2Controller extends Controller
         
         $petugasList = \App\Models\Petugas::all();
         $slsTargets = \App\Models\Target::where('type', 'sls')->get()->keyBy('key');
+        $wilkerstats = \App\Models\Wilkerstat::all()->keyBy('idsubsls');
         
         $leaderboard = [];
         $uniqueKecamatan = collect();
         
         foreach ($petugasList as $p) {
             $slsCode = $p->kode_identitas;
-            if (!isset($slsTargets[$slsCode])) continue;
             
-            $kecamatan = $slsTargets[$slsCode]->meta['nmkec'] ?? 'Tidak Diketahui';
+            $kecamatan = 'Tidak Diketahui';
+            if (isset($wilkerstats[$slsCode])) {
+                $kecamatan = $wilkerstats[$slsCode]->nmkec ?? 'Tidak Diketahui';
+            } elseif (isset($slsTargets[$slsCode])) {
+                $kecamatan = $slsTargets[$slsCode]->meta['nmkec'] ?? 'Tidak Diketahui';
+            }
             $uniqueKecamatan->push($kecamatan);
             
             $realisasi = $p->submitted_by_pencacah + $p->approved_by_pengawas + 
                          $p->rejected_by_pengawas + $p->revoked_by_pengawas + 
                          $p->completed_by_admin_kabupaten;
                          
-            foreach (['Pencacah', 'Pengawas'] as $roleName) {
-                $username = ($roleName === 'Pencacah') 
-                    ? ($slsTargets[$slsCode]->meta['ppl_name'] ?? '') 
-                    : ($slsTargets[$slsCode]->meta['pml_name'] ?? '');
-                
-                if (!empty($username) && trim($username) !== '-' && trim($username) !== '' && strtolower(trim($username)) !== 'nan') {
-                    $normalizedName = strtolower(trim($username));
-                    $userKey = $normalizedName . '|' . $roleName;
-                    
+            $username = $p->nama ?? $p->email ?? $p->kode_identitas;
+            if (empty($username)) continue;
+            
+            $roleName = 'Petugas';
+            $normalizedName = strtolower(trim($username));
+            $userKey = $normalizedName . '|' . $roleName;
                     if (!isset($leaderboard[$userKey])) {
                         $leaderboard[$userKey] = [
                             'username' => $normalizedName,
@@ -345,26 +359,28 @@ class MonitoringV2Controller extends Controller
     {
         $petugasList = \App\Models\Petugas::all();
         $slsTargets = \App\Models\Target::where('type', 'sls')->get()->keyBy('key');
+        $wilkerstats = \App\Models\Wilkerstat::all()->keyBy('idsubsls');
             
         $leaderboard = [];
         $isPML = (strtolower($role) === 'pengawas');
         
         foreach ($petugasList as $p) {
             $slsCode = $p->kode_identitas;
-            if (!isset($slsTargets[$slsCode])) continue;
-            
-            $kecamatan = $slsTargets[$slsCode]->meta['nmkec'] ?? 'Tidak Diketahui';
+            $kecamatan = 'Tidak Diketahui';
+            if (isset($wilkerstats[$slsCode])) {
+                $kecamatan = $wilkerstats[$slsCode]->nmkec ?? 'Tidak Diketahui';
+            } elseif (isset($slsTargets[$slsCode])) {
+                $kecamatan = $slsTargets[$slsCode]->meta['nmkec'] ?? 'Tidak Diketahui';
+            }
             
             $inferredRole = 'Pencacah'; 
-            if (strtolower($slsTargets[$slsCode]->meta['pml_name'] ?? '') == strtolower($p->nama)) {
+            if (isset($slsTargets[$slsCode]) && strtolower($slsTargets[$slsCode]->meta['pml_name'] ?? '') == strtolower($p->nama)) {
                 $inferredRole = 'Pengawas';
             }
-            if (strtolower($inferredRole) !== strtolower($role)) continue;
+            // Without slsTargets, we can't accurately determine role, so we show them for either or don't filter out completely
             
-            $username = $p->nama;
-            if (trim($username) === '-' || empty(trim($username))) {
-                $username = ($inferredRole == 'Pengawas') ? ($slsTargets[$slsCode]->meta['pml_name'] ?? '-') : ($slsTargets[$slsCode]->meta['ppl_name'] ?? '-');
-            }
+            $username = $p->nama ?? $p->email ?? $p->kode_identitas;
+            if (empty($username)) continue;
             
             if (!empty($username) && trim($username) !== '-' && trim($username) !== '' && strtolower(trim($username)) !== 'nan') {
                 $normalizedName = strtolower(trim($username));
