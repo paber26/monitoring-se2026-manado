@@ -237,10 +237,25 @@ class MonitoringV2Controller extends Controller
         $pclData = array_slice(array_filter($leaderboard, fn($d) => $d['role'] === 'Pencacah'), 0, 10);
         $pmlData = array_slice(array_filter($leaderboard, fn($d) => $d['role'] === 'Pengawas'), 0, 10);
         
-        $targetsArray = \App\Models\Target::where('type', 'user')->pluck('target_value', 'key')->toArray();
         $targets = [];
-        foreach ($targetsArray as $k => $v) {
-            $targets[strtolower(trim($k))] = $v;
+        foreach ($petugasList as $p) {
+            $username = $p->nama ?? $p->email ?? $p->kode_identitas;
+            if (empty($username)) continue;
+            
+            $normalizedName = strtolower(trim($username));
+            $slsCode = $p->kode_identitas;
+            
+            $targetVal = 0;
+            if (isset($wilkerstats[$slsCode])) {
+                $targetVal = $wilkerstats[$slsCode]->target_fasih ?? 0;
+            } elseif (isset($slsTargets[$slsCode])) {
+                $targetVal = $slsTargets[$slsCode]->target_value ?? 0;
+            }
+            
+            if (!isset($targets[$normalizedName])) {
+                $targets[$normalizedName] = 0;
+            }
+            $targets[$normalizedName] += $targetVal;
         }
 
         return view('monitoring_v2.leaderboard', compact('pclData', 'pmlData', 'targets'));
@@ -361,10 +376,25 @@ class MonitoringV2Controller extends Controller
             return $b['total'] <=> $a['total'];
         });
         
-        $targetsArray = \App\Models\Target::where('type', 'user')->pluck('target_value', 'key')->toArray();
         $targets = [];
-        foreach ($targetsArray as $k => $v) {
-            $targets[strtolower(trim($k))] = $v;
+        foreach ($petugasList as $p) {
+            $username = $p->nama ?? $p->email ?? $p->kode_identitas;
+            if (empty($username)) continue;
+            
+            $normalizedName = strtolower(trim($username));
+            $slsCode = $p->kode_identitas;
+            
+            $targetVal = 0;
+            if (isset($wilkerstats[$slsCode])) {
+                $targetVal = $wilkerstats[$slsCode]->target_fasih ?? 0;
+            } elseif (isset($slsTargets[$slsCode])) {
+                $targetVal = $slsTargets[$slsCode]->target_value ?? 0;
+            }
+            
+            if (!isset($targets[$normalizedName])) {
+                $targets[$normalizedName] = 0;
+            }
+            $targets[$normalizedName] += $targetVal;
         }
 
         // Pass 'role' variable to view instead of 'roleFilter' to match blade template
