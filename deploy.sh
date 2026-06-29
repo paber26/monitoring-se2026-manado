@@ -27,6 +27,7 @@ sshpass -p "$SERVER_PASS" scp -o StrictHostKeyChecking=no /tmp/monitoring_deploy
 
 echo "⚙️ Extracting files and setting permissions..."
 sshpass -p "$SERVER_PASS" ssh -o StrictHostKeyChecking=no $SERVER_USER@$SERVER_IP "
+    echo '$SERVER_PASS' | sudo -S mkdir -p $REMOTE_DIR && \
     echo '$SERVER_PASS' | sudo -S tar -xzvf /tmp/monitoring_deploy_temp_manado.tar.gz -C $REMOTE_DIR/ && \
     echo '$SERVER_PASS' | sudo -S chown -R www:www $REMOTE_DIR && \
     cd $REMOTE_DIR && \
