@@ -175,40 +175,38 @@ class MonitoringV2Controller extends Controller
         
         foreach ($petugasList as $p) {
             $slsCode = $p->kode_identitas;
-            if (!isset($slsTargets[$slsCode])) continue;
             
-            $kecamatan = $slsTargets[$slsCode]->meta['nmkec'] ?? 'Tidak Diketahui';
+            $kecamatan = 'Tidak Diketahui';
+            if (isset($slsTargets[$slsCode])) {
+                $kecamatan = $slsTargets[$slsCode]->meta['nmkec'] ?? 'Tidak Diketahui';
+            }
             
             $realisasi = $p->submitted_by_pencacah + $p->approved_by_pengawas + 
                          $p->rejected_by_pengawas + $p->revoked_by_pengawas + 
                          $p->completed_by_admin_kabupaten;
                          
-            foreach (['Pencacah', 'Pengawas'] as $roleName) {
-                $username = ($roleName === 'Pencacah') 
-                    ? ($slsTargets[$slsCode]->meta['ppl_name'] ?? '') 
-                    : ($slsTargets[$slsCode]->meta['pml_name'] ?? '');
-                
-                if (!empty($username) && trim($username) !== '-' && trim($username) !== '' && strtolower(trim($username)) !== 'nan') {
-                    $normalizedName = strtolower(trim($username));
-                    $userKey = $normalizedName . '|' . $roleName;
-                    
-                    if (!isset($leaderboard[$userKey])) {
-                        $leaderboard[$userKey] = [
-                            'username' => $normalizedName,
-                            'name' => $username,
-                            'role' => $roleName,
-                            'total' => 0,
-                            'kecamatans' => []
-                        ];
-                    }
-                    $leaderboard[$userKey]['total'] += $realisasi;
-                    
-                    if (!isset($leaderboard[$userKey]['kecamatans'][$kecamatan])) {
-                        $leaderboard[$userKey]['kecamatans'][$kecamatan] = 0;
-                    }
-                    $leaderboard[$userKey]['kecamatans'][$kecamatan] += $realisasi;
-                }
+            $username = $p->nama ?? $p->email ?? $p->kode_identitas;
+            if (empty($username)) continue;
+            
+            $roleName = 'Petugas';
+            $normalizedName = strtolower(trim($username));
+            $userKey = $normalizedName . '|' . $roleName;
+            
+            if (!isset($leaderboard[$userKey])) {
+                $leaderboard[$userKey] = [
+                    'username' => $normalizedName,
+                    'name' => $username,
+                    'role' => $roleName,
+                    'total' => 0,
+                    'kecamatans' => []
+                ];
             }
+            $leaderboard[$userKey]['total'] += $realisasi;
+            
+            if (!isset($leaderboard[$userKey]['kecamatans'][$kecamatan])) {
+                $leaderboard[$userKey]['kecamatans'][$kecamatan] = 0;
+            }
+            $leaderboard[$userKey]['kecamatans'][$kecamatan] += $realisasi;
         }
         
         uasort($leaderboard, function($a, $b) {
