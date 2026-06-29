@@ -134,22 +134,31 @@ class MonitoringV2Controller extends Controller
         
         $uniqueKecamatan = collect();
         $slsData = collect();
+        $slsCodesInPetugas = $petugas->keys();
         
-        foreach ($slsTargets as $t) {
-            $kec = $t->meta['nmkec'] ?? 'Tidak Diketahui';
-            $uniqueKecamatan->push($kec);
+        foreach ($slsCodesInPetugas as $slsCode) {
+            $kec = 'Tidak Diketahui';
+            $nmdesa = '-';
+            $namaSls = '-';
             
-            if ($filterKec && $kec !== $filterKec) continue;
-            
-            $flag = $t->meta['flag_sls_open_pbi'] ?? 0;
-            if ($filterFlag !== null && $filterFlag !== '') {
-                if ($filterFlag == '1' && $flag == 0) continue;
-                if ($filterFlag == '0' && $flag > 0) continue;
+            $wilkerstat = \App\Models\Wilkerstat::find($slsCode);
+            if ($wilkerstat) {
+                $kec = $wilkerstat->nmkec ?? 'Tidak Diketahui';
+                $nmdesa = $wilkerstat->nmdesa ?? '-';
+                $namaSls = $wilkerstat->nmsls ?? '-';
+            } else {
+                $t = $slsTargets->firstWhere('key', $slsCode);
+                if ($t) {
+                    $kec = $t->meta['nmkec'] ?? 'Tidak Diketahui';
+                    $nmdesa = $t->meta['nmdesa'] ?? '-';
+                    $namaSls = $t->meta['nama_sls'] ?? '-';
+                }
             }
             
-            $slsCode = $t->key;
-            $p = $petugas[$slsCode] ?? null;
+            $uniqueKecamatan->push($kec);
+            if ($filterKec && $kec !== $filterKec) continue;
             
+            $p = $petugas[$slsCode] ?? null;
             $count = 0;
             if ($p) {
                 $count = $p->submitted_by_pencacah + $p->approved_by_pengawas + 
@@ -160,8 +169,8 @@ class MonitoringV2Controller extends Controller
             $slsData->push((object)[
                 'level_6_full_code' => $slsCode,
                 'level_3_name' => $kec,
-                'level_4_name' => $t->meta['nmdesa'] ?? '-',
-                'level_5_name' => $t->meta['nama_sls'] ?? '-',
+                'level_4_name' => $nmdesa,
+                'level_5_name' => $namaSls,
                 'count' => $count
             ]);
         }
@@ -200,7 +209,7 @@ class MonitoringV2Controller extends Controller
             $username = $p->nama ?? $p->email ?? $p->kode_identitas;
             if (empty($username)) continue;
             
-            $roleName = 'Petugas';
+            $roleName = 'Pencacah';
             $normalizedName = strtolower(trim($username));
             $userKey = $normalizedName . '|' . $roleName;
             
@@ -290,7 +299,7 @@ class MonitoringV2Controller extends Controller
             $username = $p->nama ?? $p->email ?? $p->kode_identitas;
             if (empty($username)) continue;
             
-            $roleName = 'Petugas';
+            $roleName = 'Pencacah';
             $normalizedName = strtolower(trim($username));
             $userKey = $normalizedName . '|' . $roleName;
             if (!isset($leaderboard[$userKey])) {
