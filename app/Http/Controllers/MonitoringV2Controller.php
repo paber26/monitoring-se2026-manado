@@ -136,16 +136,20 @@ class MonitoringV2Controller extends Controller
         $slsData = collect();
         $slsCodesInPetugas = $petugas->keys();
         
+        // Load only needed wilkerstats in one query
+        $wilkerstats = \App\Models\Wilkerstat::whereIn('idsubsls', $slsCodesInPetugas)
+            ->select('idsubsls','nmkec','nmdesa','nmsls')
+            ->get()->keyBy('idsubsls');
+        
         foreach ($slsCodesInPetugas as $slsCode) {
             $kec = 'Tidak Diketahui';
             $nmdesa = '-';
             $namaSls = '-';
             
-            $wilkerstat = \App\Models\Wilkerstat::find($slsCode);
-            if ($wilkerstat) {
-                $kec = $wilkerstat->nmkec ?? 'Tidak Diketahui';
-                $nmdesa = $wilkerstat->nmdesa ?? '-';
-                $namaSls = $wilkerstat->nmsls ?? '-';
+            if (isset($wilkerstats[$slsCode])) {
+                $kec = $wilkerstats[$slsCode]->nmkec ?? 'Tidak Diketahui';
+                $nmdesa = $wilkerstats[$slsCode]->nmdesa ?? '-';
+                $namaSls = $wilkerstats[$slsCode]->nmsls ?? '-';
             } else {
                 $t = $slsTargets->firstWhere('key', $slsCode);
                 if ($t) {
@@ -186,8 +190,9 @@ class MonitoringV2Controller extends Controller
     public function leaderboard()
     {
         $petugasList = \App\Models\Petugas::all();
-        $slsTargets = \App\Models\Target::where('type', 'sls')->get()->keyBy('key');
-        $wilkerstats = \App\Models\Wilkerstat::all()->keyBy('idsubsls');
+        $petugasCodes = $petugasList->pluck('kode_identitas')->filter()->unique()->values();
+        $slsTargets = \App\Models\Target::where('type', 'sls')->whereIn('key', $petugasCodes)->get()->keyBy('key');
+        $wilkerstats = \App\Models\Wilkerstat::whereIn('idsubsls', $petugasCodes)->get()->keyBy('idsubsls');
         
         $leaderboard = [];
         
@@ -290,8 +295,9 @@ class MonitoringV2Controller extends Controller
         $elapsedWorkingDays = $calcWorkingDays($startDate, $currentDate);
         
         $petugasList = \App\Models\Petugas::all();
-        $slsTargets = \App\Models\Target::where('type', 'sls')->get()->keyBy('key');
-        $wilkerstats = \App\Models\Wilkerstat::all()->keyBy('idsubsls');
+        $petugasCodes = $petugasList->pluck('kode_identitas')->filter()->unique()->values();
+        $slsTargets = \App\Models\Target::where('type', 'sls')->whereIn('key', $petugasCodes)->get()->keyBy('key');
+        $wilkerstats = \App\Models\Wilkerstat::whereIn('idsubsls', $petugasCodes)->select('idsubsls','nmkec','nmdesa','nmsls','target_fasih')->get()->keyBy('idsubsls');
         
         $leaderboard = [];
         $uniqueKecamatan = collect();
@@ -407,8 +413,9 @@ class MonitoringV2Controller extends Controller
     public function performaRole($role)
     {
         $petugasList = \App\Models\Petugas::all();
-        $slsTargets = \App\Models\Target::where('type', 'sls')->get()->keyBy('key');
-        $wilkerstats = \App\Models\Wilkerstat::all()->keyBy('idsubsls');
+        $petugasCodes = $petugasList->pluck('kode_identitas')->filter()->unique()->values();
+        $slsTargets = \App\Models\Target::where('type', 'sls')->whereIn('key', $petugasCodes)->get()->keyBy('key');
+        $wilkerstats = \App\Models\Wilkerstat::whereIn('idsubsls', $petugasCodes)->select('idsubsls','nmkec','nmdesa','nmsls','target_fasih')->get()->keyBy('idsubsls');
             
         $leaderboard = [];
         $isPML = (strtolower($role) === 'pengawas');

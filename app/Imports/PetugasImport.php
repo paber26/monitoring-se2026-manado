@@ -19,35 +19,53 @@ class PetugasImport implements ToCollection, WithHeadingRow
     public function collection(Collection $rows)
     {
         foreach ($rows as $row) {
-            $identifier = [];
-            
-            if (!empty($row['kode_identitas'])) {
-                $identifier['kode_identitas'] = $row['kode_identitas'];
-            } elseif (!empty($row['email'])) {
-                $identifier['email'] = $row['email'];
-            } elseif (!empty($row['nama'])) {
-                $identifier['nama'] = $row['nama'];
-            } else {
-                continue; 
+            $kodeIdentitas = $row['kode_identitas'] ?? null;
+            $nama = $row['nama'] ?? null;
+            $email = $row['email'] ?? null;
+
+            if (empty($kodeIdentitas) && empty($email) && empty($nama)) {
+                continue;
             }
 
-            Petugas::updateOrCreate(
-                $identifier,
-                [
-                    'kode_identitas' => $row['kode_identitas'] ?? null,
-                    'nama' => $row['nama'] ?? null,
-                    'email' => $row['email'] ?? null,
-                    'role' => $this->role,
-                    'open' => (int) ($row['open'] ?? 0),
-                    'draft' => (int) ($row['draft'] ?? 0),
-                    'submitted_by_pencacah' => (int) ($row['submitted_by_pencacah'] ?? 0),
-                    'approved_by_pengawas' => (int) ($row['approved_by_pengawas'] ?? 0),
-                    'rejected_by_pengawas' => (int) ($row['rejected_by_pengawas'] ?? 0),
-                    'submitted_respondent' => (int) ($row['submitted_respondent'] ?? 0),
-                    'revoked_by_pengawas' => (int) ($row['revoked_by_pengawas'] ?? 0),
-                    'completed_by_admin_kabupaten' => (int) ($row['completed_by_admin_kabupaten'] ?? 0),
-                ]
-            );
+            if ($this->role === 'Pengawas') {
+                // For Pengawas: find existing row by kode_identitas and only update the pengawas name/email
+                if (!empty($kodeIdentitas)) {
+                    Petugas::where('kode_identitas', $kodeIdentitas)->update([
+                        'nama_pengawas' => $nama,
+                        'email_pengawas' => $email,
+                    ]);
+                }
+            } else {
+                // For Pencacah: upsert the full row
+                $identifier = [];
+                if (!empty($kodeIdentitas)) {
+                    $identifier['kode_identitas'] = $kodeIdentitas;
+                } elseif (!empty($email)) {
+                    $identifier['email'] = $email;
+                } elseif (!empty($nama)) {
+                    $identifier['nama'] = $nama;
+                } else {
+                    continue;
+                }
+
+                Petugas::updateOrCreate(
+                    $identifier,
+                    [
+                        'kode_identitas' => $kodeIdentitas,
+                        'nama'           => $nama,
+                        'email'          => $email,
+                        'role'           => 'Pencacah',
+                        'open'           => (int) ($row['open'] ?? 0),
+                        'draft'          => (int) ($row['draft'] ?? 0),
+                        'submitted_by_pencacah'        => (int) ($row['submitted_by_pencacah'] ?? 0),
+                        'approved_by_pengawas'         => (int) ($row['approved_by_pengawas'] ?? 0),
+                        'rejected_by_pengawas'         => (int) ($row['rejected_by_pengawas'] ?? 0),
+                        'submitted_respondent'         => (int) ($row['submitted_respondent'] ?? 0),
+                        'revoked_by_pengawas'          => (int) ($row['revoked_by_pengawas'] ?? 0),
+                        'completed_by_admin_kabupaten' => (int) ($row['completed_by_admin_kabupaten'] ?? 0),
+                    ]
+                );
+            }
         }
     }
 }

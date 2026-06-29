@@ -100,6 +100,7 @@
                         <td class="px-4 py-3 text-center font-medium {{ $p->approved_by_pengawas > 0 ? 'text-green-600' : 'text-slate-400' }}">{{ $p->approved_by_pengawas }}</td>
                         <td class="px-4 py-3 text-center font-medium {{ $p->rejected_by_pengawas > 0 ? 'text-red-600' : 'text-slate-400' }}">{{ $p->rejected_by_pengawas }}</td>
                         <td class="px-4 py-3 text-center font-medium {{ $p->completed_by_admin_kabupaten > 0 ? 'text-emerald-600' : 'text-slate-400' }}">{{ $p->completed_by_admin_kabupaten }}</td>
+                        <td class="px-4 py-3 text-slate-700">{{ $p->nama_pengawas ?: '-' }}</td>
                     </tr>
                     @empty
                     <tr>
